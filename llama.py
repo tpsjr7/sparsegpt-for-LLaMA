@@ -9,7 +9,7 @@ from sparsegpt import *
 from modelutils import *
 
 # bandaid fix
-dev = torch.device("cpu")
+dev = torch.device("cuda")
 
 def get_llama(model):
     import torch
