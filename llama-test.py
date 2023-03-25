@@ -1,6 +1,6 @@
 import math
 import time
-import copy
+
 import torch
 import torch.nn as nn
 import transformers
@@ -69,8 +69,7 @@ def llama_sequential(model, dataloader, dev):
     attention_mask = cache['attention_mask']
 
     print('Ready.')
-    
-    pruners = {}
+
     for i in range(len(layers)):
         layer = layers[i].to(dev)
 
@@ -109,7 +108,6 @@ def llama_sequential(model, dataloader, dev):
         inps, outs = outs, inps
     
     model.config.use_cache = use_cache
-    return pruners
 
 
 @torch.no_grad()
@@ -200,22 +198,6 @@ def llama_eval(model, testenc, dev):
 
     model.config.use_cache = use_cache
 
-def llama_pack(model, pruners):
-    layers = find_layers(model)
-    layers = {n: layers[n] for n in pruners}
-    
-    qlayers = find_layers(model, pruners)
-    print('Packing ...')
-    for name in qlayers:
-        if name not in pruners:
-            continue
-        print(name)
-        pruners[name],scale,zero = pruners[name]
-        pruners[name],scale,zero = pruners[name].cpu(),scale.cpu(),zero.cpu()
-        qlayers[name].pack(layers[name], scale, zero)
-    print('Done!')
-    return model
-
 if __name__ == '__main__':
     import argparse
     from datautils import *
@@ -274,10 +256,6 @@ if __name__ == '__main__':
        '--invert', action='store_true',
        help='Invert subset.'
     )
-    parser.add_argument(
-        '--save', type=str, default='',
-        help='Save the pruned checkpoint under this name'
-    )
 
     args = parser.parse_args()
 
@@ -303,14 +281,3 @@ if __name__ == '__main__':
         )
         print(dataset)
         llama_eval(model, testloader, DEV)
-
-    if args.save:
-        pruners = llama_sequential(model, dataloader, dev)
-        pruned_model = copy.deepcopy(model)
-        for name, module in pruned_model.named_modules():
-            if isinstance(module, nn.Linear) and "attn" not in name:
-                mask = pruners[name].get_mask()
-                module.weight.data *= mask
-                module.bias.data *= mask.sum(dim=1)
-        llama_pack(model, pruners)
-        torch.save(model.state_dict(), args.save)
