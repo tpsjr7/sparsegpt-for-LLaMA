@@ -303,4 +303,5 @@ if __name__ == '__main__':
 
     if args.save:
         llama_pack(model, gpts)
+        gpts = llama_sequential(model, dataloader, DEV)
         torch.save(model.state_dict(), args.save)
