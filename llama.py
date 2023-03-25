@@ -50,10 +50,13 @@ def llama_sequential(model, dataloader, dev):
     layers[0] = Catcher(layers[0])
     for batch in dataloader:
         try:
-            model(batch[0].to(dev))
+            input_tensor = batch[0].to(dev)
+            print("Input tensor shape:", input_tensor.shape)
+            model(input_tensor)
         except ValueError:
             pass
         layers[0] = layers[0].module
+
 
     layers[0] = layers[0].cpu()
     model.model.embed_tokens = model.model.embed_tokens.cpu()
