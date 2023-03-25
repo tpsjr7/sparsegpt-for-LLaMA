@@ -305,5 +305,5 @@ if __name__ == '__main__':
         llama_eval(model, testloader, DEV)
 
     if args.save:
-        llama_pack(model, gpts)
+        llama_pack(model, pruners)
         torch.save(model.state_dict(), args.save)
