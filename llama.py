@@ -22,9 +22,6 @@ def get_llama(model):
 
 @torch.no_grad()
 def llama_sequential(model, dataloader, dev):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    llama_sequential(model, dataloader, device)
-
     print('Starting ...')
 
     use_cache = model.config.use_cache
@@ -41,6 +38,7 @@ def llama_sequential(model, dataloader, dev):
     )
     cache = {'i': 0, 'attention_mask': None}
 
+
     class Catcher(nn.Module):
         def __init__(self, module):
             super().__init__()
@@ -53,12 +51,10 @@ def llama_sequential(model, dataloader, dev):
     layers[0] = Catcher(layers[0])
     for batch in dataloader:
         try:
-            input_tensor = batch[0].to(dev)
-            print("Input tensor shape:", input_tensor.shape)
-            model(input_tensor)
+            model(batch[0].to(dev))
         except ValueError:
             pass
-        layers[0] = layers[0].module
+    layers[0] = layers[0].module
 
 
     layers[0] = layers[0].cpu()
@@ -69,7 +65,7 @@ def llama_sequential(model, dataloader, dev):
     outs = torch.zeros_like(inps)
     attention_mask = cache['attention_mask']
 
-    print('Ready !')
+    print('Ready.')
 
     for i in range(len(layers)):
         layer = layers[i].to(dev)
@@ -113,7 +109,7 @@ def llama_sequential(model, dataloader, dev):
 
 @torch.no_grad()
 def llama_eval(model, testenc, dev):
-    print('Evaluation ...')
+    print('Evaluating ...')
 
     testenc = testenc.input_ids
     nsamples = testenc.numel() // model.seqlen
@@ -180,7 +176,7 @@ def llama_eval(model, testenc, dev):
     model.lm_head = model.lm_head.to(dev)
 
     testenc = testenc.to(dev)
-    n11s = []
+    nlls = []
     for i in range(nsamples):
         hidden_states = inps[i].unsqueeze(0)
         if model.model.norm is not None:
@@ -193,8 +189,8 @@ def llama_eval(model, testenc, dev):
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
         neg_log_likelihood = loss.float() * model.seqlen
-        n11s.append(neg_log_likelihood)
-    pp1 = torch.exp(torch.stack(n11s).sum() / (nsamples * model.seqlen))
+        nlls.append(neg_log_likelihood)
+    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * model.seqlen))
     print(ppl.item())
 
     model.config.use_cache = use_cache
@@ -276,9 +272,12 @@ if __name__ == '__main__':
                 break
         print(time.time() - tick)
 
-    for dataset in ['wikitext2', 'ptb', 'c4']:
+    datasets = ['wikitext2', 'ptb', 'c4'] 
+    if args.new_eval:
+      datasets = ['wikitext2', 'ptb-new', 'c4-new']
+    for dataset in datasets: 
         dataloader, testloader = get_loaders(
             dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
         )
         print(dataset)
-        llama_eval(model, testloader, dev)
+        llama_eval(model, testloader, DEV)
