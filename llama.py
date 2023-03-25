@@ -275,12 +275,9 @@ if __name__ == '__main__':
                 break
         print(time.time() - tick)
 
-    datasets = ['wikitext2', 'ptb', 'c4'] 
-    if args.new_eval:
-      datasets = ['wikitext2', 'ptb-new', 'c4-new']
-    for dataset in datasets: 
+    for dataset in ['wikitext2', 'ptb', 'c4']:
         dataloader, testloader = get_loaders(
             dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
         )
         print(dataset)
-        llama_eval(model, testloader, DEV)
+        bloom_eval(model, testloader, DEV)
