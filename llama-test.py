@@ -69,7 +69,8 @@ def llama_sequential(model, dataloader, dev):
     attention_mask = cache['attention_mask']
 
     print('Ready.')
-
+    
+    pruners = {}
     for i in range(len(layers)):
         layer = layers[i].to(dev)
 
@@ -108,6 +109,7 @@ def llama_sequential(model, dataloader, dev):
         inps, outs = outs, inps
     
     model.config.use_cache = use_cache
+    return pruners
 
 
 @torch.no_grad()
@@ -198,13 +200,14 @@ def llama_eval(model, testenc, dev):
 
     model.config.use_cache = use_cache
 
-def llama_pack(model, gpts):
+def llama_pack(model, pruners):
     layers = find_layers(model)
-    layers = {n: layers[n] for n in gpts}
-    qlayers = find_layers(model, gpts)
+    layers = {n: layers[n] for n in pruners}
+    
+    qlayers = find_layers(model, pruners)
     print('Packing ...')
     for name in qlayers:
-        if name not in gpts:
+        if name not in pruners:
             continue
         print(name)
         gpts[name],scale,zero = gpts[name]
@@ -303,5 +306,4 @@ if __name__ == '__main__':
 
     if args.save:
         llama_pack(model, gpts)
-        gpts = llama_sequential(model, dataloader, DEV)
         torch.save(model.state_dict(), args.save)
