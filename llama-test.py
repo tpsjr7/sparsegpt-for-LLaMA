@@ -306,5 +306,11 @@ if __name__ == '__main__':
 
     if args.save:
         pruners = llama_sequential(model, dataloader, dev)
+        pruned_model = copy.deepcopy(model)
+        for name, module in pruned_model.named_modules():
+            if isinstance(module, nn.Linear) and "attn" not in name:
+                mask = pruners[name].get_mask()
+                module.weight.data *= mask
+                module.bias.data *= mask.sum(dim=1)
         llama_pack(model, pruners)
         torch.save(model.state_dict(), args.save)
