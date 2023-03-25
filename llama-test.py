@@ -99,6 +99,7 @@ def llama_sequential(model, dataloader, dev):
             gpts[name].fasterprune(
                 args.sparsity, prunen=args.prunen, prunem=args.prunem, percdamp=args.percdamp
             )
+            pruners['model.layers.%d.%s' % (i, name)] = gpts[name].pruners
         for j in range(args.nsamples):
             outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
 
@@ -210,8 +211,8 @@ def llama_pack(model, pruners):
         if name not in pruners:
             continue
         print(name)
-        gpts[name],scale,zero = gpts[name]
-        gpts[name],scale,zero = gpts[name].cpu(),scale.cpu(),zero.cpu()
+        pruners[name],scale,zero = pruners[name]
+        pruners[name],scale,zero = pruners[name].cpu(),scale.cpu(),zero.cpu()
         qlayers[name].pack(layers[name], scale, zero)
     print('Done!')
     return model
@@ -305,5 +306,6 @@ if __name__ == '__main__':
         llama_eval(model, testloader, DEV)
 
     if args.save:
+        pruners = llama_sequential(model, dataloader, dev)
         llama_pack(model, pruners)
         torch.save(model.state_dict(), args.save)
