@@ -1,13 +1,13 @@
-# SparseGPT
+# SparseGPT for LLaMA
 
-This repository contains code to reproduce the key results of the paper [SparseGPT: Massive Language Models Can be Accurately Pruned in One-shot](https://arxiv.org/abs/2301.00774).
+This repository contains code to reproduce the key results of the paper [SparseGPT: Massive Language Models Can be Accurately Pruned in One-shot](https://arxiv.org/abs/2301.00774), now adapted to LLaMA.
 
 Specifically, it provides scripts and implementations to:
 
-* Evaluate baseline and pruned models on raw-WikiText2, PTB and C4-subset. (`datautils.py`, `opt.py`, `bloom.py`) 
-* Perform unstructured, n:m and sparse + quantized SparseGPT compression on OPT and BLOOM models. (`sparsegpt.py`, `opt.py`, `bloom.py`)
+* Evaluate baseline and pruned models on raw-WikiText2, PTB and C4-subset. (`datautils.py`, `opt.py`, `bloom.py`, `llama.py`) 
+* Perform unstructured, n:m and sparse + quantized SparseGPT compression on OPT, BLOOM, and LLaMA models. (`sparsegpt.py`, `opt.py`, `bloom.py`, `llama.py`)
 
-We note that this SparseGPT implementation is based on our open-source [GPTQ code](https://github.com/IST-DASLab/gptq). 
+We note that this SparseGPT implementation is based on [IST-DASLab's](https://github.com/IST-DASLab) open-source [GPTQ code](https://github.com/IST-DASLab/gptq). 
 
 ## Dependencies
 
@@ -17,35 +17,28 @@ We note that this SparseGPT implementation is based on our open-source [GPTQ cod
 
 ## Usage
 
-Here are some sample commands to run baselines and sparsification on OPT models, followed by perplexity evaluations on raw-WikiText2, PTB and C4.
+Here are some sample commands to run baselines and sparsification on LLaMA models, followed by perplexity evaluations on raw-WikiText2, PTB and C4.
 See also the CMD-argument documentation.
 
 ```
 # Run dense baseline
-python opt.py facebook/opt-125m c4
+python llama.py decapoda-research/llama-7b-hf c4
 
 # Run magnitude baseline
-python opt.py facebook/opt-125m c4 --sparsity .5 --gmp
+python llama.py decapoda-research/llama-7b-hf c4 --sparsity .5 --gmp
 
 # Prune to 50\% uniform sparsity with SparseGPT
-python opt.py facebook/opt-125m c4 --sparsity .5
+python llama.py decapoda-research/llama-7b-hf c4 --sparsity .5
 
 # Prune to full 2:4 sparsity with SparseGPT
-python opt.py facebook/opt-125m c4 --prunen 2 --prunem 4
+python llama.py decapoda-research/llama-7b-hf --prunen 2 --prunem 4
 
-# Prune to 50\% + 4-bit with SparseGPT
-python opt.py facebook/opt-125m c4 --sparsity .5 --wbits 4
+# Prune to 50\% + 4-bit with SparseGPT -- Currently not working
+python llama.py decapoda-research/llama-7b-hf --sparsity .5 --wbits 4
 ```
 
-To run on other OPT models, replace "facebook/opt-125m" by the HuggingFace name of the corresponding model.
-For the 175B model, access must first be requested from Meta and the checkpoint converted to HuggingFace format, then its location can simply be passed as a name to this script.
+To run on other LLaMA models, replace "decapoda-research/llama-7b-h" by the HuggingFace name of the corresponding model.
 
-The BLOOM script `bloom.py` has a very similar interface, however some features are currently only available for OPT, e.g.:
-
-```
-# Sparsify BLOOM-176B with SparseGPT
-python bloom.py bigscience/bloom c4 --sparsity .5
-```
 
 ## Cite
 
