@@ -204,6 +204,8 @@ def llama_pack(model, gpts):
     qlayers = find_layers(model, gpts)
     print('Packing ...')
     for name in qlayers:
+        if name not in gpts:
+            continue
         print(name)
         gpts[name],scale,zero = gpts[name]
         gpts[name],scale,zero = gpts[name].cpu(),scale.cpu(),zero.cpu()
