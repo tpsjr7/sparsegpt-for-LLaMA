@@ -99,7 +99,6 @@ def llama_sequential(model, dataloader, dev):
             gpts[name].fasterprune(
                 args.sparsity, prunen=args.prunen, prunem=args.prunem, percdamp=args.percdamp
             )
-            pruners['model.layers.%d.%s' % (i, name)] = gpts[name].pruners
         for j in range(args.nsamples):
             outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
 
