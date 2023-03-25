@@ -8,6 +8,9 @@ import transformers
 from sparsegpt import *
 from modelutils import *
 
+# bandaid fix
+dev = torch.device("cpu")
+
 def get_llama(model):
     import torch
     def skip(*args, **kwargs):
