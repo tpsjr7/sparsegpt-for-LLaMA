@@ -21,7 +21,7 @@ def get_llama(model):
     return model
 
 @torch.no_grad()
-def llama_sequential(model, dataloader, DEV):
+def llama_sequential(model, dataloader, dev):
     print('Starting ...')
 
     use_cache = model.config.use_cache
@@ -266,7 +266,7 @@ if __name__ == '__main__':
     
     if (args.sparsity or args.prunen) and not args.gmp:
         tick = time.time()
-        llama_sequential(model, dataloader, DEV)
+        llama_sequential(model, dataloader, dev)
         for n, p in model.named_parameters():
             print(n, torch.mean((p == 0).float()))
             if 'dense_4h_to_h' in n:
@@ -278,4 +278,4 @@ if __name__ == '__main__':
             dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
         )
         print(dataset)
-        llama_eval(model, testloader, DEV)
+        llama_eval(model, testloader, dev)
