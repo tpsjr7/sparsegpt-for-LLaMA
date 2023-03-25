@@ -16,7 +16,7 @@ def get_llama(model):
     torch.nn.init.uniform_ = skip
     torch.nn.init.normal_ = skip
     from transformers import LlamaForCausalLM
-    model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto', device='cpu')
+    model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto')
     model.seqlen = 2048
     return model
 
@@ -266,7 +266,7 @@ if __name__ == '__main__':
     
     if (args.sparsity or args.prunen) and not args.gmp:
         tick = time.time()
-        llama_sequential(model, dataloader, DEV)
+        llama_sequential(model, dataloader, dev)
         for n, p in model.named_parameters():
             print(n, torch.mean((p == 0).float()))
             if 'dense_4h_to_h' in n:
