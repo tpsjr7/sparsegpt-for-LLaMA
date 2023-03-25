@@ -22,6 +22,9 @@ def get_llama(model):
 
 @torch.no_grad()
 def llama_sequential(model, dataloader, dev):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    llama_sequential(model, dataloader, device)
+
     print('Starting ...')
 
     use_cache = model.config.use_cache
