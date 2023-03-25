@@ -280,4 +280,4 @@ if __name__ == '__main__':
             dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
         )
         print(dataset)
-        bloom_eval(model, testloader, DEV)
+        llama_eval(model, testloader, DEV)
