@@ -254,7 +254,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    model = llama_get(args.model)
+    model = get_llama(args.model)
     model.eval()
 
     dataloader, testloader = get_loaders(
