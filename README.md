@@ -30,8 +30,8 @@ python llama.py decapoda-research/llama-7b-hf c4 --sparsity .5 --gmp
 # Prune to 50\% uniform sparsity with SparseGPT
 python llama.py decapoda-research/llama-7b-hf c4 --sparsity .5
 
-# Prune to full 2:4 sparsity with SparseGPT
-python llama.py decapoda-research/llama-7b-hf --prunen 2 --prunem 4
+# Prune to full 2:4 sparsity with SparseGPT and save the model
+python llama.py decapoda-research/llama-7b-hf --prunen 2 --prunem 4 --save /path/to/model.pt
 
 # Prune to 50\% + 4-bit with SparseGPT -- Currently not working
 python llama.py decapoda-research/llama-7b-hf --sparsity .5 --wbits 4
