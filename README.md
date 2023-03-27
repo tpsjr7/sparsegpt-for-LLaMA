@@ -9,6 +9,17 @@ Specifically, it provides scripts and implementations to:
 
 We note that this SparseGPT implementation is based on [IST-DASLab's](https://github.com/IST-DASLab) open-source [GPTQ code](https://github.com/IST-DASLab/gptq). 
 
+## Perplexity Results (Lower is better)
+
+| Model                                              | Bits | Sparsity ratio | RAM (GiB)   | VRAM (GiB) | wikitext2  | ptb     | C4     |
+| -------------------------------------------------- | ---- | -------------- | ----------- | ---------- | ---------- | ------- | ------ |
+| [LLaMa-7B](https://arxiv.org/abs/2302.13971)       |  4   | 50% uniform    |    -        |    -       |  7.21254   | 10.96087| 8.5896 |
+| [LLaMa-13B](https://arxiv.org/abs/2302.13971)      |  4   | 50% uniform    |      27     |    12      |  6.20875   | 9.33356 | 7.6749 |
+| [LLaMa-33B](https://arxiv.org/abs/2302.13971)      |  4   | 50% uniform    |     63      |    16      |  5.3358    | 8.1773  | 6.922  |
+| [LLaMa-65B](https://arxiv.org/abs/2302.13971)      |  4   | 50% uniform    |      -      |   -        |      -     | -       | -      |
+
+
+
 ## Dependencies
 
 * `torch`: tested on v1.10.1+cu111
