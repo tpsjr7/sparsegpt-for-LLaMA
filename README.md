@@ -16,8 +16,9 @@ We note that this SparseGPT implementation is based on [IST-DASLab's](https://gi
 | [LLaMa-7B](https://arxiv.org/abs/2302.13971)       |  16  | 50% uniform    |    15       |    8.5     |  7.21254   | 10.96087| 8.5896 |
 | [LLaMa-13B](https://arxiv.org/abs/2302.13971)      |  16  | 50% uniform    |      27     |    12      |  6.20875   | 9.33356 | 7.6749 |
 | [LLaMa-33B](https://arxiv.org/abs/2302.13971)      |  16  | 50% uniform    |     63      |    16      |  5.3358    | 8.1773  | 6.922  |
-| [LLaMa-65B](https://arxiv.org/abs/2302.13971)      |  16  | 50% uniform    |      -      |   -        |      -     | -       | -      |
+| [LLaMa-65B](https://arxiv.org/abs/2302.13971)      |  16  | 50% uniform    |      127    |   25.5     |  4.60178   | 7.52578 | 6.32754|
 
+LLaMA 65B evaluation results provided by [seggybop](https://github.com/seggybop).
 
 
 ## Dependencies
