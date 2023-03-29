@@ -7,6 +7,15 @@ import transformers
 
 from sparsegpt import *
 from modelutils import *
+from quant import *
+
+try:
+    import wandb
+    has_wandb = True
+except:
+    has_wandb = False
+    
+
 
 # bandaid fix
 dev = torch.device("cuda")
@@ -111,7 +120,7 @@ def llama_sequential(model, dataloader, dev):
 
 
 @torch.no_grad()
-def llama_eval(model, testenc, dev):
+def llama_eval(model, testenc, dev, dataset: str, log_wandb: bool = False):
     print('Evaluating ...')
 
     testenc = testenc.input_ids
@@ -194,7 +203,10 @@ def llama_eval(model, testenc, dev):
         neg_log_likelihood = loss.float() * model.seqlen
         nlls.append(neg_log_likelihood)
     ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * model.seqlen))
-    print(ppl.item())
+    #print(ppl.item())
+    print(f"Perplexity: {ppl.item():3f}")
+    if log_wandb:
+        wandb.log({f'{dataset}/perplexity': ppl.item()})
 
     model.config.use_cache = use_cache
 
