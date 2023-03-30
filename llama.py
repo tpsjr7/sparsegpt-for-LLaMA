@@ -268,7 +268,7 @@ if __name__ == '__main__':
     
     if (args.sparsity or args.prunen) and not args.gmp:
         tick = time.time()
-        llama_sequential(model, dataloader, dev)
+        llama_sequential(model, dataloader, DEV)
         for n, p in model.named_parameters():
             print(n, torch.mean((p == 0).float()))
             if 'dense_4h_to_h' in n:
