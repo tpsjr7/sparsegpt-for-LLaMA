@@ -26,6 +26,8 @@ LLaMA 65B evaluation results provided by [seggybop](https://github.com/seggybop)
 * `torch`: tested on v1.10.1+cu111
 * `transformers`: tested on v4.21.2
 * `datasets`: tested on v1.17.0
+* `wandb`
+* `dataset`
 
 ## Usage
 
