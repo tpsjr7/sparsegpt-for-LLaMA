@@ -1,9 +1,4 @@
-import math
-import time
 import copy
-import torch
-import torch.nn as nn
-import transformers
 
 from sparsegpt import *
 from modelutils import *
@@ -46,7 +41,7 @@ def llama_sequential(model, dataloader, dev):
     inps = torch.zeros(
         (args.nsamples, model.seqlen, model.config.hidden_size), dtype=dtype, device=dev
     )
-    cache = {'i': 0, 'attention_mask': None}
+    cache = {'i': 0, 'attention_mask': None, 'position_ids': None}
 
 
     class Catcher(nn.Module):
@@ -57,6 +52,7 @@ def llama_sequential(model, dataloader, dev):
             inps[cache['i']] = inp
             cache['i'] += 1
             cache['attention_mask'] = kwargs['attention_mask']
+            cache['position_ids'] = kwargs['position_ids']
             raise ValueError
     layers[0] = Catcher(layers[0])
     for batch in dataloader:
@@ -74,7 +70,7 @@ def llama_sequential(model, dataloader, dev):
 
     outs = torch.zeros_like(inps)
     attention_mask = cache['attention_mask']
-
+    position_ids = cache['position_ids']
     print('Ready.')
     
     pruners = {}
@@ -96,7 +92,7 @@ def llama_sequential(model, dataloader, dev):
         for name in gpts:
             handles.append(subset[name].register_forward_hook(add_batch(name)))
         for j in range(args.nsamples):
-            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
+            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
         for h in handles:
             h.remove()
 
@@ -107,7 +103,7 @@ def llama_sequential(model, dataloader, dev):
                 args.sparsity, prunen=args.prunen, prunem=args.prunem, percdamp=args.percdamp
             )
         for j in range(args.nsamples):
-            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
+            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask,  position_ids=position_ids)[0]
 
         layers[i] = layer.cpu()
         del gpts
@@ -137,7 +133,7 @@ def llama_eval(model, testenc, dev):
     inps = torch.zeros(
         (nsamples, model.seqlen, model.config.hidden_size), dtype=dtype, device=dev
     )
-    cache = {'i': 0, 'attention_mask': None}
+    cache = {'i': 0, 'attention_mask': None, 'position_ids': None}
 
     class Catcher(nn.Module):
         def __init__(self, module):
@@ -147,6 +143,7 @@ def llama_eval(model, testenc, dev):
             inps[cache['i']] = inp
             cache['i'] += 1
             cache['attention_mask'] = kwargs['attention_mask']
+            cache['position_ids'] = kwargs['position_ids']
             raise ValueError
     layers[0] = Catcher(layers[0])
     for i in range(nsamples):
@@ -163,6 +160,7 @@ def llama_eval(model, testenc, dev):
 
     outs = torch.zeros_like(inps)
     attention_mask = cache['attention_mask']
+    position_ids = cache['position_ids']
 
     for i in range(len(layers)):
         print(i)
@@ -176,7 +174,7 @@ def llama_eval(model, testenc, dev):
                 W.data[torch.abs(W.data) <= thresh] = 0
 
         for j in range(nsamples):
-            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
+            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
         layers[i] = layer.cpu()
         del layer
         torch.cuda.empty_cache()
@@ -205,8 +203,6 @@ def llama_eval(model, testenc, dev):
     ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * model.seqlen))
     # print(ppl.item())
     print(f"Perplexity: {ppl.item():3f}")
-    if log_wandb:
-        wandb.log({f'{dataset}/perplexity': ppl.item()})
 
     model.config.use_cache = use_cache
 
@@ -288,10 +284,10 @@ if __name__ == '__main__':
         '--save', type=str, default='',
         help='Save the pruned checkpoint under this name'
     )
-    parser.add_argument(
-        '--wandb_logging', type='store_true',
-        help='Log the evaluation steps with wandb'
-    )
+    # parser.add_argument(
+    #     '--wandb_logging', type='store_true',
+    #     help='Log the evaluation steps with wandb'
+    # )
 
     args = parser.parse_args()
 
@@ -311,13 +307,6 @@ if __name__ == '__main__':
                 break
         print(time.time() - tick)
 
-    for dataset in ['wikitext2', 'ptb', 'c4']:
-        dataloader, testloader = get_loaders(
-            dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
-        )
-        print(dataset)
-        llama_eval(model, testloader, DEV)
-
     if args.save:
         pruners = llama_sequential(model, dataloader, dev)
         pruned_model = copy.deepcopy(model)
@@ -328,6 +317,13 @@ if __name__ == '__main__':
                 module.bias.data *= mask.sum(dim=1)
         llama_pack(model, pruners)
         torch.save(model.state_dict(), args.save)
+
+    for dataset in ['wikitext2', 'ptb', 'c4']:
+        dataloader, testloader = get_loaders(
+            dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
+        )
+        print(dataset)
+        llama_eval(model, testloader, DEV)
 
     if args.wandb_logging:
         assert has_wandb, "wandb is not installed. Run `pip install wandb`"

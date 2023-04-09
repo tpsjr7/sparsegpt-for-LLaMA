@@ -1,6 +1,6 @@
 safetensors==0.3.0
 datasets==2.10.1
 sentencepiece
-git+https://github.com/huggingface/transformers
+git+https://github.com/huggingface/transformers@5506d0496957cde19318eee3d34ee682b654abe8
 wandb
 dataset
